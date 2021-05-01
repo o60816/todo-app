@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"todo-app/models"
 
 	"github.com/gin-gonic/gin"
 )
+
+var pageSize string = "1"
 
 func showMainPage(c *gin.Context) {
 	c.HTML(
@@ -26,55 +27,56 @@ func requireResource(c *gin.Context) {
 	)
 }
 
-// func usersGetHandler(c *gin.Context) {
-
-// }
-
-// func usersPostHandler(c *gin.Context) {
-
-// }
-
-// func usersPatchHandler(c *gin.Context) {
-
-// }
-
-// func usersDeleteHandler(c *gin.Context) {
-
-// }
-
-func itemsGetHandler(c *gin.Context) {
-	itemList, err := models.GetAllItems()
+func setPageSize(c *gin.Context) {
+	pageSize = c.DefaultQuery("pageSize", "1")
+	totalPage, err := models.GetTotalCount(pageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": err})
 		log.Panic(err)
 		return
 	}
-	c.JSON(http.StatusOK, itemList)
+	c.JSON(http.StatusOK, gin.H{"totalpage": totalPage})
+}
+
+func itemsGetHandler(c *gin.Context) {
+	itemList, err := models.GetAllItems()
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"itemlist": itemList})
+}
+
+func itemsGetPartial(c *gin.Context) {
+	page := c.DefaultQuery("page", "1")
+	itemList, err := models.GetPageOfItems(page, pageSize)
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"itemlist": itemList})
 }
 
 func itemsPostHandler(c *gin.Context) {
 	itemName := c.PostForm("itemName")
 	err := models.AddItem("0", itemName)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": err})
 		log.Panic(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Add successfully"})
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func itemsPatchHandler(c *gin.Context) {
-	type Response struct {
+	var rsp struct {
 		IsDone string `json:"isDone"`
 	}
-
-	var rsp Response
 	itemId := c.Param("id")
 	if err := c.ShouldBindJSON(&rsp); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("abcd:" + rsp.IsDone)
+
 	err := models.UpdateItem(rsp.IsDone, itemId)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": err})

@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Item struct {
 	Id       int
@@ -26,6 +29,44 @@ func GetAllItems() ([]Item, error) {
 		return nil, err
 	}
 
+	return itemList, err
+}
+
+func GetTotalCount(pageSize string) (int, error) {
+	intPageSize, _ := strconv.Atoi(pageSize)
+	var totalRows int
+	rows, err := db.Query(fmt.Sprintf("SELECT COUNT(id) FROM items"))
+	if err != nil {
+		return 0, err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&totalRows); err != nil {
+			return 0, err
+		}
+	}
+
+	if (totalRows % intPageSize) == 0 {
+		return (totalRows / intPageSize), err
+	}
+	return (totalRows / intPageSize) + 1, err
+}
+
+func GetPageOfItems(page, pageSize string) ([]Item, error) {
+	intPage, _ := strconv.Atoi(page)
+	intPageSize, _ := strconv.Atoi(pageSize)
+
+	rows, err := db.Query(fmt.Sprintf("SELECT * FROM items LIMIT %d OFFSET %d", intPageSize, ((intPage - 1) * intPageSize)))
+	if err != nil {
+		return nil, err
+	}
+	itemList := make([]Item, 0)
+	for rows.Next() {
+		var item Item
+		if err = rows.Scan(&item.Id, &item.UserId, &item.IsDone, &item.ItemName); err != nil {
+			return nil, err
+		}
+		itemList = append(itemList, item)
+	}
 	return itemList, err
 }
 

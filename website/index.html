@@ -111,10 +111,14 @@
       }
       .wrapper .footer{
         display: flex;
+        flex-wrap: wrap;
         width: 100%;
         margin-top: 20px;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start
+      }
+      .footer a{
+        margin-left: 10px;
       }
       .footer button{
         padding: 6px 10px;
@@ -124,13 +128,13 @@
         color: #fff;
         font-weight: 400;
         font-size: 16px;
-        margin-left: 5px;
         background: #8E49E8;
         cursor: pointer;
         user-select: none;
         opacity: 0.6;
         pointer-events: none;
         transition: all 0.3s ease;
+        width: 100%;
       }
       .footer button.active{
         opacity: 1;
@@ -143,6 +147,12 @@
 <body>
   <div class="wrapper">
     <header>Todo App</header>
+      <select name="pagesize" id="pagesize" onchange="changePagination(this.value)">
+        <option value="1">Show 1 items</option>
+        <option value="5">Show 5 items</option>
+        <option value="10">Show 10 items</option>
+        <option value="all" selected>Show All</option>
+    </select>
     <div class="inputField">
       <input type="text" placeholder="Add your new todo">
       <button>+</button>
@@ -150,10 +160,7 @@
     <ul class="todoList">
       <!-- data are comes from local storage -->
     </ul>
-    <div class="footer">
-      <span>You have <span class="pendingTasks"></span> pending tasks</span>
-      <button class="btn active">Clear All</button>
-    </div>
+    <div class="footer"></div>
   </div>
 
   <script src="/website/script.js"></script>
