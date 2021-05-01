@@ -84,7 +84,11 @@ function updateTasks(id){
     processData: true,
     contentType: 'application/merge-patch+json',
     success: function(data){
-      showPagination(currentPage)
+      if ("all" === all){
+        showAllTasks()
+      }else{
+        showPagination(currentPage)
+      }
     }
  });
 }
