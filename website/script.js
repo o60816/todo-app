@@ -33,11 +33,11 @@ function showAllTasks(){
   });
 }
 
-function changePagination(val) {
-  if (val=="all"){
+function changePagination(pageSize, toLastPage) {
+  if (pageSize=="all"){
     showAllTasks()
   }else{
-    $.get("/items/pagesize?pageSize=" +val, function(data, status){
+    $.get("/items/pagesize?pageSize=" +pageSize, function(data, status){
       let newFooter = '';
       let tmpTotalPage = parseInt(data.totalpage);
       
@@ -45,15 +45,15 @@ function changePagination(val) {
         newFooter += `<a href="javascript:showPagination(${i})">${i}</a>`;
       }
       footer.innerHTML = footerDefault + newFooter
-      currentPage = 1
       totalPage = tmpTotalPage
-      showPagination(currentPage)
+      currentPage = 1
+      showPagination(toLastPage ? tmpTotalPage : currentPage)
     });
   }
 }
 
-function showPagination(val){
-  $.get("/items/pagination?page=" +val, function(data, status){
+function showPagination(page){
+  $.get("/items/pagination?page=" +page, function(data, status){
     let newLiTag = "";
     data.itemlist.forEach((element, index) => {
       var checked = element.IsDone ? "checked" : ""
@@ -61,7 +61,7 @@ function showPagination(val){
     });
     todoList.innerHTML = newLiTag; //adding new li tag inside ul tag
     inputBox.value = ""; //once task added leave the input field blank
-    currentPage = val
+    currentPage = page
   });
 }
 
@@ -69,7 +69,7 @@ addBtn.onclick = ()=>{ //when user click on plus icon button
   let userEnteredValue = inputBox.value; //getting input field value
   $.post("/items", {"itemName":userEnteredValue}, function(data, status){
     addBtn.classList.remove("active"); //unactive the add button once the task added
-    showPagination(totalPage)
+    changePagination($("#pagesize").get(0).value, true)
   });
 }
 
