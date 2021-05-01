@@ -2,7 +2,11 @@
 const inputBox = document.querySelector(".inputField input");
 const addBtn = document.querySelector(".inputField button");
 const todoList = document.querySelector(".todoList");
-const deleteAllBtn = document.querySelector(".footer button");
+const footer = document.querySelector(".footer");
+const pageTag = document.querySelector(".footer a");
+let footerDefault = '<button class="btn active" onclick="deleteAllTasks">Clear All</button>';
+let currentPage = 1
+let totalPage = 1
 // onkeyup event
 inputBox.onkeyup = ()=>{
   let userEnteredValue = inputBox.value; //getting user entered value
@@ -13,19 +17,51 @@ inputBox.onkeyup = ()=>{
   }
 }
 
-showTasks(); //calling showTask function
+showAllTasks()
 
-function showTasks(){
+function showAllTasks(){
   $.get("/items", function(data, status){
-    var listArray = Object.keys(data).map((key) => data[key]);
     let newLiTag = "";
+    data.itemlist.forEach((element, index) => {
+      let checked = element.IsDone ? "checked" : "";
+      newLiTag += `<li><input type="checkbox" ${checked} id="checkbox${element.Id}" name="checkbox${element.Id}" onclick="updateTasks(${element.Id})">     </input>${element.ItemName}<span class="icon" onclick="deleteTask(${element.Id})">-</span></li>`;
+    });
+    todoList.innerHTML = newLiTag; //adding new li tag inside ul tag
+    inputBox.value = ""; //once task added leave the input field blank
 
-    listArray.forEach((element, index) => {
+    footer.innerHTML = footerDefault
+  });
+}
+
+function changePagination(val) {
+  if (val=="all"){
+    showAllTasks()
+  }else{
+    $.get("/items/pagesize?pageSize=" +val, function(data, status){
+      let newFooter = '';
+      let tmpTotalPage = parseInt(data.totalpage);
+      
+      for (i = 1; i!=tmpTotalPage+1; i++) {
+        newFooter += `<a href="javascript:showPagination(${i})">${i}</a>`;
+      }
+      footer.innerHTML = footerDefault + newFooter
+      currentPage = 1
+      totalPage = tmpTotalPage
+      showPagination(currentPage)
+    });
+  }
+}
+
+function showPagination(val){
+  $.get("/items/pagination?page=" +val, function(data, status){
+    let newLiTag = "";
+    data.itemlist.forEach((element, index) => {
       var checked = element.IsDone ? "checked" : ""
       newLiTag += `<li><input type="checkbox" ${checked} id="checkbox${element.Id}" name="checkbox${element.Id}" onclick="updateTasks(${element.Id})">     </input>${element.ItemName}<span class="icon" onclick="deleteTask(${element.Id})">-</span></li>`;
     });
     todoList.innerHTML = newLiTag; //adding new li tag inside ul tag
     inputBox.value = ""; //once task added leave the input field blank
+    currentPage = val
   });
 }
 
@@ -33,8 +69,7 @@ addBtn.onclick = ()=>{ //when user click on plus icon button
   let userEnteredValue = inputBox.value; //getting input field value
   $.post("/items", {"itemName":userEnteredValue}, function(data, status){
     addBtn.classList.remove("active"); //unactive the add button once the task added
-    showTasks()
-    alert(data.message);
+    showPagination(totalPage)
   });
 }
 
@@ -49,8 +84,7 @@ function updateTasks(id){
     processData: true,
     contentType: 'application/merge-patch+json',
     success: function(data){
-      showTasks()
-      alert(data.message);
+      showPagination(currentPage)
     }
  });
 }
@@ -60,20 +94,17 @@ function deleteTask(id){
     type: 'DELETE',
     url: `/items/${id}`,
     success: function(data){
-      showTasks()
-      alert(data.message);
+      changePagination($("#pagesize").get(0).value)
     }
  });
 }
 
-// delete all tasks function
-deleteAllBtn.onclick = ()=>{
+function deleteAllTasks(){
   $.ajax({
     type: 'DELETE',
     url: '/items',
     success: function(data){
-      showTasks()
-      alert(data.message);
+      changePagination($("#pagesize").get(0).val)
     }
  });
 }

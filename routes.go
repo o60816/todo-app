@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,8 +31,11 @@ func initializeRoutes() {
 	// router.DELETE("/users", usersDeleteHandler)
 
 	// router.DELETE("/users/:name", usersDeleteHandler)
+	router.GET("/items/pagesize", setPageSize)
 
 	router.GET("/items", itemsGetHandler)
+
+	router.GET("/items/pagination", itemsGetPartial)
 
 	router.POST("/items", itemsPostHandler)
 
@@ -41,5 +45,7 @@ func initializeRoutes() {
 
 	router.DELETE("/items/:id", itemsDeleteHandler)
 
-	router.Run(":80")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }
