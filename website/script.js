@@ -4,7 +4,7 @@ const addBtn = document.querySelector(".inputField button");
 const todoList = document.querySelector(".todoList");
 const footer = document.querySelector(".footer");
 const pageTag = document.querySelector(".footer a");
-let footerDefault = '<button class="btn active" onclick="deleteAllTasks">Clear All</button>';
+let footerDefault = '<button class="btn active" onclick="deleteAllTasks()">Clear All</button>';
 let currentPage = 1
 let totalPage = 1
 // onkeyup event
@@ -104,7 +104,7 @@ function deleteAllTasks(){
     type: 'DELETE',
     url: '/items',
     success: function(data){
-      changePagination($("#pagesize").get(0).val)
+      showAllTasks()
     }
  });
 }
